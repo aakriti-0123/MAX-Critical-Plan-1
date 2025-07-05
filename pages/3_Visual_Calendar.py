@@ -1,25 +1,25 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Calendar View")
-selection = st.session_state.get("calendar_selection", {})
-calendars = st.session_state.get("uploaded_calendars", {})
+st.title("📅 Calendar View")
 
-if not selection or not calendars:
-    st.warning("Please complete upload and selection before viewing calendar.")
-    st.stop()
+# Select the calendar to view
+uploaded_calendars = st.session_state.get("uploaded_calendars", {})
+calendar_keys = list(uploaded_calendars.keys())
 
-excel_file = calendars.get(selection['season'])
-if not excel_file:
-    st.error("Selected season file not found.")
-    st.stop()
+if not calendar_keys:
+    st.warning("⚠️ No calendars uploaded. Please go to the 'Upload Calendar' page.")
+else:
+    selected_calendar = st.selectbox("Select calendar to view", calendar_keys)
 
-df = pd.read_excel(excel_file, header=2)
+    # Read and display the selected Excel calendar
+    excel_file = uploaded_calendars.get(selected_calendar)
 
-if selection['hit'] != "All":
-    hit_number = selection['hit'].split(" ")[-1]
-    hit_cols = [col for col in df.columns if f"Hit {hit_number}" in str(col)]
-    display_cols = [df.columns[1]] + hit_cols
-    df = df[display_cols]
-
-st.dataframe(df, use_container_width=True)
+    if excel_file:
+        try:
+            df = pd.read_excel(excel_file, header=2, engine="openpyxl")
+            st.dataframe(df)
+        except Exception as e:
+            st.error(f"❌ Failed to read Excel file: {e}")
+    else:
+        st.warning("⚠️ Selected file not found.")
