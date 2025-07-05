@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from io import BytesIO
 
 st.title("📅 Calendar View")
 
@@ -15,31 +14,29 @@ else:
 
     if excel_file:
         try:
-            # Read Excel (start from row index 2, i.e., 3rd row), preserve all as string
+            # Read Excel from 3rd row, preserve all values as string
             df = pd.read_excel(excel_file, header=2, dtype=str)
 
-            # Clean headers: replace "Unnamed" and NaN with blank
-            cleaned_cols = ["" if ("Unnamed" in str(col) or pd.isna(col)) else str(col) for col in df.columns]
-            # Remove duplicates manually
-            seen = set()
-            final_cols = []
-            for col in cleaned_cols:
-                if col not in seen:
-                    final_cols.append(col)
-                    seen.add(col)
+            # Clean column headers: blank out unnamed/NaN columns
+            cleaned_cols = []
+            blank_count = 0
+            for col in df.columns:
+                if pd.isna(col) or str(col).startswith("Unnamed"):
+                    cleaned_cols.append(" " * blank_count)  # "", " ", "  ", ...
+                    blank_count += 1
                 else:
-                    final_cols.append(col + " ")  # Add space to make it unique
+                    cleaned_cols.append(str(col))
 
-            df.columns = final_cols
+            df.columns = cleaned_cols
 
-            # Format all valid dates to DD-MMM-YYYY, remove time
+            # Format dates: convert to '10-Jul-2026' if valid date
             for col in df.columns:
                 try:
                     df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime('%d-%b-%Y').fillna(df[col])
                 except:
                     pass
 
-            # Display calendar cleanly
+            # Show clean calendar
             st.dataframe(df.reset_index(drop=True), use_container_width=True)
 
         except Exception as e:
