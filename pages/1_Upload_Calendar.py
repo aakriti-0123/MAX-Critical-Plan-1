@@ -1,6 +1,5 @@
 import streamlit as st
 
-st.title("Upload Launch Calendar Files")
 password = st.text_input("Enter Admin Password", type="password")
 
 if password == st.secrets.get("ADMIN_PASS"):
