@@ -1,18 +1,32 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 
-# Assuming 'selected_calendar' is the dropdown selection and 'uploaded_calendars' has the files
-excel_file = st.session_state['uploaded_calendars'][selected_calendar]
+st.title("Calendar View")
 
-# Read Excel file (starting from the 3rd row) and load as string to preserve formatting
-df = pd.read_excel(excel_file, header=2, dtype=str)
+uploaded_calendars = st.session_state.get('uploaded_calendars', {})
+calendar_keys = list(uploaded_calendars.keys())
 
-# Format dates and preserve blank cells
-df = df.applymap(lambda x: pd.to_datetime(x).strftime('%d-%b-%Y') if pd.to_datetime(x, errors='coerce') is not pd.NaT else x)
-df = df.fillna("")
+if not calendar_keys:
+    st.warning("⚠️ No calendars uploaded. Please go to the 'Upload Calendar' page.")
+else:
+    selected_calendar = st.selectbox("Select calendar to view", calendar_keys)
+    excel_file = uploaded_calendars[selected_calendar]
 
-# Remove 'Unnamed' headers
-df.columns = ["" if "Unnamed" in str(col) else col for col in df.columns]
+    # Read Excel file (starting from the 3rd row) and load as string to preserve formatting
+    df = pd.read_excel(excel_file, header=2, dtype=str)
 
-# Display styled table
-st.dataframe(df.reset_index(drop=True), use_container_width=True)
+    # Clean column names: remove 'Unnamed'
+    df.columns = ["" if "Unnamed" in str(col) else col for col in df.columns]
+
+    # Format cells to hide timestamps and empty cells
+    def format_cell(val):
+        try:
+            parsed = pd.to_datetime(val)
+            return parsed.strftime('%d-%b-%Y')
+        except:
+            return val if pd.notna(val) else ""
+
+    df = df.applymap(format_cell)
+
+    st.dataframe(df.reset_index(drop=True), use_container_width=True)
+
