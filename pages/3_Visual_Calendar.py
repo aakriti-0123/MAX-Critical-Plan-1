@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.title("📅 Calendar View")
+st.title("Calendar")
 
 # Select the calendar to view
 uploaded_calendars = st.session_state.get("uploaded_calendars", {})
