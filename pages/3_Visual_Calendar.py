@@ -14,28 +14,17 @@ else:
 
     if excel_file:
         try:
-            # Read Excel from row 3 onward, everything as string
             df = pd.read_excel(excel_file, header=2, dtype=str)
-
-            # Clean up column headers (remove 'Unnamed' etc.)
-            cleaned_cols = []
-            blank_count = 0
-            for col in df.columns:
-                if pd.isna(col) or str(col).startswith("Unnamed"):
-                    cleaned_cols.append(" " * blank_count)
-                    blank_count += 1
-                else:
-                    cleaned_cols.append(str(col))
-            df.columns = cleaned_cols
-
-            # Convert all NaNs and None to empty string
             df = df.fillna("")
 
-            # Format valid date cells to DD-MMM-YYYY
+            # Format valid dates to DD-MMM-YYYY
             for col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime('%d-%b-%Y').fillna(df[col])
+                try:
+                    df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime('%d-%b-%Y').fillna(df[col])
+                except:
+                    pass
 
-            # Collapse repeated merged-looking values (left to right across columns)
+            # Replace repeated merged-looking values across columns
             def collapse_merged_cells(row):
                 new_row = []
                 prev = None
@@ -49,8 +38,39 @@ else:
 
             df = df.apply(collapse_merged_cells, axis=1)
 
-            # Display with clean formatting
-            st.dataframe(df.reset_index(drop=True), use_container_width=True)
+            # Clean headers
+            cleaned_cols = []
+            blank_count = 1
+            for col in df.columns:
+                if "Unnamed" in str(col) or str(col).strip() == "":
+                    cleaned_cols.append(f"&nbsp;")
+                else:
+                    cleaned_cols.append(str(col))
+            df.columns = cleaned_cols
+
+            # Generate HTML table
+            def style_row(row):
+                return ''.join(
+                    f"<td style='border:1px solid #ddd; padding:8px; min-width:90px; text-align:center'>{cell if cell else ''}</td>"
+                    for cell in row
+                )
+
+            table_html = "<style>td, th {font-family: Poppins; font-size:14px;}</style>"
+            table_html += "<table style='border-collapse:collapse; width:100%; background-color:#fef8f5'>"
+
+            # Add header
+            table_html += "<tr>" + ''.join(
+                f"<th style='border:1px solid #ddd; padding:8px; background-color:#f9e4e0'>{col}</th>"
+                for col in df.columns
+            ) + "</tr>"
+
+            # Add rows
+            for _, row in df.iterrows():
+                table_html += "<tr>" + style_row(row) + "</tr>"
+
+            table_html += "</table>"
+
+            st.markdown(table_html, unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"❌ Failed to load calendar: {e}")
