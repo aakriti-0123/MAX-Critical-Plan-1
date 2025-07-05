@@ -1,0 +1,19 @@
+body {
+    background-color: #FAF3F0;
+    font-family: 'Poppins', sans-serif;
+    color: #000000;
+}
+h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
+    color: #2D2D2D;
+}
+.stButton > button {
+    background-color: #D4AF37;
+    color: #0D0D1A;
+    border-radius: 8px;
+    font-weight: bold;
+}
+section[data-testid="stSidebar"] {
+    background-color: #FFFFFF;
+    border-right: 1px solid #DDD;
+}
