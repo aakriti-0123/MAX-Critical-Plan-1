@@ -1,15 +1,12 @@
 import streamlit as st
 import pandas as pd
-from pandas.io.parsers import ParserBase
 from io import BytesIO
 
-st.title("Calendar")
+st.title("📅 Calendar View")
 
-# Load uploaded files from session
 uploaded_calendars = st.session_state.get("uploaded_calendars", {})
 calendar_keys = list(uploaded_calendars.keys())
 
-# Dropdown to select calendar
 if not calendar_keys:
     st.warning("⚠️ No calendars uploaded. Please go to the 'Upload Calendar' page.")
 else:
@@ -18,21 +15,32 @@ else:
 
     if excel_file:
         try:
-            # Read Excel (from 3rd row)
+            # Read Excel (start from row index 2, i.e., 3rd row), preserve all as string
             df = pd.read_excel(excel_file, header=2, dtype=str)
 
-            # Remove time from any datetime cells
+            # Clean headers: replace "Unnamed" and NaN with blank
+            cleaned_cols = ["" if ("Unnamed" in str(col) or pd.isna(col)) else str(col) for col in df.columns]
+            # Remove duplicates manually
+            seen = set()
+            final_cols = []
+            for col in cleaned_cols:
+                if col not in seen:
+                    final_cols.append(col)
+                    seen.add(col)
+                else:
+                    final_cols.append(col + " ")  # Add space to make it unique
+
+            df.columns = final_cols
+
+            # Format all valid dates to DD-MMM-YYYY, remove time
             for col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='ignore').map(
-                    lambda x: x.strftime('%d-%b-%Y') if pd.notna(x) and isinstance(x, pd.Timestamp) else x
-                )
+                try:
+                    df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime('%d-%b-%Y').fillna(df[col])
+                except:
+                    pass
 
-            # Clean column headers: show blank instead of "Unnamed" and remove suffixes
-            cleaned_cols = [" " if "Unnamed" in str(c) or pd.isna(c) else c for c in df.columns]
-            df.columns = ParserBase({'names': cleaned_cols})._maybe_dedup_names(cleaned_cols)
-
-            # Display formatted calendar
+            # Display calendar cleanly
             st.dataframe(df.reset_index(drop=True), use_container_width=True)
 
         except Exception as e:
-            st.error(f"❌ Failed to read calendar: {e}")
+            st.error(f"❌ Failed to load calendar: {e}")
