@@ -1,25 +1,18 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-st.title("Calendar")
+# Assuming 'selected_calendar' is the dropdown selection and 'uploaded_calendars' has the files
+excel_file = st.session_state['uploaded_calendars'][selected_calendar]
 
-# Select the calendar to view
-uploaded_calendars = st.session_state.get("uploaded_calendars", {})
-calendar_keys = list(uploaded_calendars.keys())
+# Read Excel file (starting from the 3rd row) and load as string to preserve formatting
+df = pd.read_excel(excel_file, header=2, dtype=str)
 
-if not calendar_keys:
-    st.warning("⚠️ No calendars uploaded. Please go to the 'Upload Calendar' page.")
-else:
-    selected_calendar = st.selectbox("Select calendar to view", calendar_keys)
+# Format dates and preserve blank cells
+df = df.applymap(lambda x: pd.to_datetime(x).strftime('%d-%b-%Y') if pd.to_datetime(x, errors='coerce') is not pd.NaT else x)
+df = df.fillna("")
 
-    # Read and display the selected Excel calendar
-    excel_file = uploaded_calendars.get(selected_calendar)
+# Remove 'Unnamed' headers
+df.columns = ["" if "Unnamed" in str(col) else col for col in df.columns]
 
-    if excel_file:
-        try:
-            df = pd.read_excel(excel_file, header=2, engine="openpyxl")
-            st.dataframe(df)
-        except Exception as e:
-            st.error(f"❌ Failed to read Excel file: {e}")
-    else:
-        st.warning("⚠️ Selected file not found.")
+# Display styled table
+st.dataframe(df.reset_index(drop=True), use_container_width=True)
