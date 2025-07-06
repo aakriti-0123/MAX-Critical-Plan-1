@@ -40,6 +40,10 @@ if not sheet_name:
     st.stop()
 
 df = season_data[sheet_name].fillna("").astype(str)
+# --- FORMAT DATE COLUMNS TO REMOVE TIME STAMPS ---
+for col in df.columns[2:]:  # Skip row headers
+    df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%d-%b-%Y').fillna(df[col])
+
 df.reset_index(drop=True, inplace=True)
 
 # --- CLEAN HEADERS (REMOVE "Unnamed" etc.) ---
