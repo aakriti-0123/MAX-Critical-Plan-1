@@ -1,8 +1,8 @@
 import streamlit as st
 import re
-import pandas as pd
 
 st.title("Select Season and View Options")
+
 st.markdown("""
     <style>
         .stButton button {
@@ -22,22 +22,15 @@ if not uploaded:
     st.stop()
 
 season = st.selectbox("Select Season", options=list(uploaded.keys()))
-season_file = uploaded.get(season)
+season_data = uploaded[season].get("data")
 
-# Load all sheets from the Excel file if not already done
-if isinstance(season_file, dict):
-    season_data = season_file
-else:
-    try:
-        season_data = pd.read_excel(season_file, sheet_name=None)
-        st.session_state['uploaded_calendars'][season] = season_data
-    except Exception as e:
-        st.error(f"Failed to read Excel file: {e}")
-        st.stop()
+if not season_data:
+    st.error("Selected season data is not in the correct format.")
+    st.stop()
 
 sheet_names = list(season_data.keys())
 
-# Detect hits from sheet names
+# Detect hit sheets
 hit_pattern = re.compile(rf"{season}[- ]*HIT (\d+)", re.IGNORECASE)
 hit_matches = sorted(set(int(m.group(1)) for name in sheet_names if (m := hit_pattern.search(name))))
 hit_options = ["All"] + [f"Hit {i}" for i in hit_matches] if hit_matches else ["All"]
@@ -45,7 +38,7 @@ hit_options = ["All"] + [f"Hit {i}" for i in hit_matches] if hit_matches else ["
 hit = st.selectbox("Select Hit", options=hit_options)
 launch_type = st.radio("Launch Type", ["Regular", "Quick Response"])
 
-# Detect CP timelines for each launch type
+# Match CP sheets
 cp_pattern = re.compile(rf"{season}.*{'REGULAR CP' if launch_type == 'Regular' else 'QR'}_(\d+D)", re.IGNORECASE)
 available_cps = sorted(set(m.group(1) for name in sheet_names if (m := cp_pattern.search(name))))
 
