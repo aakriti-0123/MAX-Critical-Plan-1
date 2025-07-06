@@ -69,50 +69,63 @@ calendar = pd.concat([header_rows, body], ignore_index=True)
 
 # 🧾 Generate styled HTML
 def generate_calendar_html(df):
+   def generate_calendar_html(df):
     html = """
     <style>
-        td, th {
-            font-family: Poppins;
-            font-size: 13px;
+        table {
+            width: 100%;
             border-collapse: collapse;
+            font-family: Poppins;
+        }
+        td, th {
+            font-size: 13px;
+            border: 1px solid #ccc;
             text-align: center;
             padding: 6px;
         }
-        .month { font-weight: bold; background-color: #fceeee; border-right: 2px solid #444; }
+        .month { font-weight: bold; background-color: #fceeee; }
         .hit { font-weight: bold; background-color: #f9f0f0; }
-        .milestone { font-weight: bold; background-color: #fff3f3; text-align: left; padding-left: 10px; }
         .bold { font-weight: bold; }
-        .divider { border-right: 2px solid #333 !important; }
-        table { width: 100%; border: 1px solid #aaa; border-collapse: collapse; }
+        .left-label { font-weight: bold; text-align: left; padding-left: 10px; }
+        .divider { border-right: 2px solid #222 !important; }
     </style>
-    <table border='1'>
+    <table>
     """
 
-    prev_months = df.iloc[1].tolist()
-    prev_hits = df.iloc[2].tolist()
+    prev_month = None
+    prev_hit = None
+    month_row = df.iloc[1]
+    hit_row = df.iloc[2]
 
     for i, row in df.iterrows():
         html += "<tr>"
         for j, cell in enumerate(row):
-            val = "" if pd.isna(cell) or str(cell).strip().lower() == "none" else str(cell)
+            val = "" if pd.isna(cell) or str(cell).lower() == "none" else str(cell)
 
             css_class = ""
-            if i == 1:
-                if j > 1 and j < len(row) and row[j] == prev_months[j - 1]:
+            # Blank out repeating MONTHS and HIT headers
+            if i == 1:  # Month row
+                if j > 1 and val == prev_month:
                     val = ""
+                else:
+                    prev_month = val
                 css_class = "month"
-            elif i == 2:
-                if j > 1 and j < len(row) and row[j] == prev_hits[j - 1]:
+            elif i == 2:  # Hit row
+                if j > 1 and val == prev_hit:
                     val = ""
+                else:
+                    prev_hit = val
                 css_class = "hit"
             elif i >= 4 and j in [0, 1]:
-                css_class = "milestone"
+                css_class = "left-label"
             elif val in ["GRN DATE", "LAUNCH WK", "LAUNCH DATE", "Launch Sequence", "MONTHS", "HIT"]:
                 css_class = "bold"
 
-            # Darker borders after each Month block
-            if i >= 1 and i <= 3:
-                if i == 1 and j > 1 and row[j] != row[j - 1]:
+            # Add month divider if month changes ahead
+            if i >= 1 and j > 1 and j < len(row) - 1:
+                this_month = str(month_row[j])
+                next_month = str(month_row[j + 1])
+                if this_month != next_month:
                     css_class += " divider"
 
             html += f"<td class='{css_class}'>{val}</td>"
@@ -120,6 +133,7 @@ def generate_calendar_html(df):
 
     html += "</table>"
     return html
+
 
 # ✅ Show final calendar
 calendar_html = generate_calendar_html(calendar)
