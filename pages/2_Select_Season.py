@@ -22,31 +22,32 @@ if not uploaded:
     st.stop()
 
 season = st.selectbox("Select Season", options=list(uploaded.keys()))
+season_file = uploaded.get(season)
 
-# Ensure uploaded[season] is a dict of sheet_name: DataFrame
-season_data = uploaded.get(season, {})
-if not isinstance(season_data, dict):
-    st.error("Selected season data is not in the correct format.")
-    st.stop()
+# Load all sheets from the Excel file if not already done
+if isinstance(season_file, dict):
+    season_data = season_file
+else:
+    try:
+        season_data = pd.read_excel(season_file, sheet_name=None)
+        st.session_state['uploaded_calendars'][season] = season_data
+    except Exception as e:
+        st.error(f"Failed to read Excel file: {e}")
+        st.stop()
 
 sheet_names = list(season_data.keys())
 
-# Detect hits and CP types from sheet names
+# Detect hits from sheet names
 hit_pattern = re.compile(rf"{season}[- ]*HIT (\d+)", re.IGNORECASE)
 hit_matches = sorted(set(int(m.group(1)) for name in sheet_names if (m := hit_pattern.search(name))))
-hit_options = ["All"] + [f"Hit {i}" for i in hit_matches]
-
-# Detect CP timelines for each launch type
-def extract_cp_sheets(launch_type):
-    if launch_type == "Regular":
-        cp_pattern = re.compile(rf"{season}.*REGULAR CP_(\d+D)", re.IGNORECASE)
-    else:
-        cp_pattern = re.compile(rf"{season}.*QR_(\d+D)", re.IGNORECASE)
-    return sorted(set(m.group(1) for name in sheet_names if (m := cp_pattern.search(name))))
+hit_options = ["All"] + [f"Hit {i}" for i in hit_matches] if hit_matches else ["All"]
 
 hit = st.selectbox("Select Hit", options=hit_options)
 launch_type = st.radio("Launch Type", ["Regular", "Quick Response"])
-available_cps = extract_cp_sheets(launch_type)
+
+# Detect CP timelines for each launch type
+cp_pattern = re.compile(rf"{season}.*{'REGULAR CP' if launch_type == 'Regular' else 'QR'}_(\d+D)", re.IGNORECASE)
+available_cps = sorted(set(m.group(1) for name in sheet_names if (m := cp_pattern.search(name))))
 
 if not available_cps:
     st.error("No CP timelines available for this launch type.")
