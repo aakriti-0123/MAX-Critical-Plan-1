@@ -1,59 +1,59 @@
 import streamlit as st
+import re
 
-st.markdown("<h1 style='font-family:Poppins,sans-serif;'>📋 Select Season and View Options</h1>", unsafe_allow_html=True)
+st.title("Select Season and View Options")
+st.markdown("""
+    <style>
+        .stButton button {
+            background-color: #f2dcdc;
+            color: black;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            border: 1px solid #e6b8b8;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 uploaded = st.session_state.get("uploaded_calendars", {})
-
 if not uploaded:
-    st.markdown(
-        "<div style='padding:1rem; background-color:#fff0f0; border-radius:10px; color:#b30000;'>"
-        "<strong>⚠️ No calendars found.</strong> Please upload them on the Upload page."
-        "</div>", unsafe_allow_html=True)
+    st.warning("No calendars found. Please upload them on the Upload page.")
     st.stop()
 
-# --- Step 1: Season Dropdown ---
 season = st.selectbox("Select Season", options=list(uploaded.keys()))
-season_prefix = season[:2].upper()
 
-# --- Step 2: Auto-Detect Hits from Sheet Names ---
-available_sheets = uploaded[season].keys()
-hit_names = set()
-for name in available_sheets:
-    if season in name and "HIT" in name:
-        parts = name.split("HIT")
-        if len(parts) > 1 and parts[1].strip()[0].isdigit():
-            hit_number = parts[1].strip().split()[0]
-            hit_names.add(f"Hit {hit_number}")
+# Detect hits and CP types from sheet names
+sheet_names = list(uploaded[season].keys())
+hit_pattern = re.compile(rf"{season}[- ]*HIT (\d+)", re.IGNORECASE)
+hit_matches = sorted(set(int(m.group(1)) for name in sheet_names if (m := hit_pattern.search(name))))
+hit_options = ["All"] + [f"Hit {i}" for i in hit_matches]
 
-hit_options = ["All"] + sorted(hit_names, key=lambda x: int(x.split()[1]) if x != "All" else -1)
+# Detect CP timelines for each launch type
+def extract_cp_sheets(launch_type):
+    if launch_type == "Regular":
+        return sorted(set(
+            re.findall(rf"REGULAR CP_(\d+D)", ",".join(sheet_names), re.IGNORECASE)
+        ))
+    else:
+        return sorted(set(
+            re.findall(rf"QR_(\d+D)", ",".join(sheet_names), re.IGNORECASE)
+        ))
+
 hit = st.selectbox("Select Hit", options=hit_options)
-
-# --- Step 3: Launch Type and Dynamic CP Dropdown ---
 launch_type = st.radio("Launch Type", ["Regular", "Quick Response"])
+available_cps = extract_cp_sheets(launch_type)
 
-# Detect available CP timelines
-available_cp = []
-for sheet in available_sheets:
-    if launch_type == "Regular" and sheet.startswith("CP_"):
-        available_cp.append(sheet.replace("CP_", ""))
-    elif launch_type == "Quick Response" and sheet.startswith("QR_"):
-        available_cp.append(sheet.replace("QR_", ""))
-
-if not available_cp:
-    st.error(f"❌ No {launch_type} CP timelines found for {season}.")
+if not available_cps:
+    st.error("No CP timelines available for this launch type.")
     st.stop()
 
-cp = st.selectbox("Select CP Timeline", sorted(available_cp, reverse=True))
+cp = st.selectbox("Select CP Timeline", available_cps)
 
-# --- Step 4: OK Button ---
-if st.button("✅ OK / Apply Selection", use_container_width=True):
+if st.button("OK"):
     st.session_state['calendar_selection'] = {
         "season": season,
         "hit": hit,
         "launch_type": launch_type,
         "cp": cp
     }
-    st.markdown(
-        "<div style='padding:1rem; background-color:#e6f4ea; border-radius:10px; color:#007000;'>"
-        "✅ <strong>Selection stored.</strong> Go to 'Visual Calendar' to see the result."
-        "</div>", unsafe_allow_html=True)
+    st.success("Selection stored. Go to 'Visual Calendar' to see the result.")
