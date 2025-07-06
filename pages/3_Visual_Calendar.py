@@ -46,8 +46,12 @@ df.reset_index(drop=True, inplace=True)
 df.columns = ["" if isinstance(col, str) and col.startswith("_") else col for col in df.columns]
 
 # --- SIMULATE MERGED CELLS ---
-def merge_repeats(df, axis=0, rows_or_cols=[0, 1] if axis == 0 else [0, 1]):
+def merge_repeats(df, axis=0, rows_or_cols=None):
     df_copy = df.copy()
+    
+    if rows_or_cols is None:
+        rows_or_cols = [0, 1] if axis == 0 else [0, 1]
+
     if axis == 0:
         for row in rows_or_cols:
             prev = None
@@ -60,16 +64,14 @@ def merge_repeats(df, axis=0, rows_or_cols=[0, 1] if axis == 0 else [0, 1]):
     else:
         for col in rows_or_cols:
             prev = None
-            for row in range(df.shape[0]):
+            for row in df.index:
                 curr = df.iloc[row, col]
                 if curr == prev:
                     df_copy.iloc[row, col] = ""
                 else:
                     prev = curr
-    return df_copy
 
-df = merge_repeats(df, axis=0)
-df = merge_repeats(df, axis=1)
+    return df_copy
 
 # --- DETECT MONTH BOUNDARIES FOR DARK BORDERS ---
 def detect_month_boundaries(df):
