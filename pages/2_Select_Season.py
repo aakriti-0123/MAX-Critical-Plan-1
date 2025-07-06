@@ -37,13 +37,10 @@ hit_options = ["All"] + [f"Hit {i}" for i in hit_matches]
 # Detect CP timelines for each launch type
 def extract_cp_sheets(launch_type):
     if launch_type == "Regular":
-        return sorted(set(
-            re.findall(rf"REGULAR CP_(\d+D)", ",".join(sheet_names), re.IGNORECASE)
-        ))
+        cp_pattern = re.compile(rf"{season}.*REGULAR CP_(\d+D)", re.IGNORECASE)
     else:
-        return sorted(set(
-            re.findall(rf"QR_(\d+D)", ",".join(sheet_names), re.IGNORECASE)
-        ))
+        cp_pattern = re.compile(rf"{season}.*QR_(\d+D)", re.IGNORECASE)
+    return sorted(set(m.group(1) for name in sheet_names if (m := cp_pattern.search(name))))
 
 hit = st.selectbox("Select Hit", options=hit_options)
 launch_type = st.radio("Launch Type", ["Regular", "Quick Response"])
