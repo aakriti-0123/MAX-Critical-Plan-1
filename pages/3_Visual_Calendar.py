@@ -9,11 +9,10 @@ st.set_page_config(page_title="Visual Calendar", layout="wide")
 st.markdown("<h1 style='font-family:Poppins'>📅 Visual Calendar</h1>", unsafe_allow_html=True)
 fullscreen = st.checkbox("Expand to full screen view")
 if fullscreen:
-    st.markdown("""
-        <style>
-        .main .block-container {max-width: 100%; padding: 0rem 2rem;}
-        </style>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        "<style>.main .block-container {max-width: 100%; padding: 0rem 2rem;}</style>",
+        unsafe_allow_html=True
+    )
 
 # --- GET SELECTION ---
 selection = st.session_state.get("calendar_selection")
@@ -40,16 +39,15 @@ if not sheet_name:
     st.error("No matching timeline found for the selected filters.")
     st.stop()
 
-df = season_data[sheet_name].copy()
-df.fillna("", inplace=True)
+df = season_data[sheet_name].fillna("").astype(str)
 
-# --- FORMAT DATES (Remove timestamp) ---
-for col in df.columns[2:]:
+# --- FORMAT DATE COLUMNS TO REMOVE TIME STAMPS ---
+for col in df.columns[2:]:  # Skip row headers
     df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%d-%b-%Y').fillna(df[col])
 
 df.reset_index(drop=True, inplace=True)
 
-# --- CLEAN HEADERS (REMOVE "Unnamed" etc.) ---
+# --- CLEAN HEADERS ---
 df.columns = ["" if isinstance(col, str) and col.startswith("_") else col for col in df.columns]
 
 # --- SIMULATE MERGED CELLS ---
@@ -57,6 +55,7 @@ def merge_repeats(df, axis=0, rows_or_cols=None):
     df_copy = df.copy()
     if rows_or_cols is None:
         rows_or_cols = [0, 1] if axis == 0 else [0, 1]
+
     if axis == 0:
         for row in rows_or_cols:
             prev = None
@@ -80,10 +79,11 @@ def merge_repeats(df, axis=0, rows_or_cols=None):
 df = merge_repeats(df, axis=0)
 df = merge_repeats(df, axis=1)
 
-# --- DETECT MONTH BOUNDARIES FOR DARK BORDERS ---
+# --- DETECT MONTH BOUNDARIES ---
 def detect_month_boundaries(df):
     first_row = df.iloc[0, 2:]
-    return [i+2 for i, val in enumerate(first_row) if val != ""]
+    boundaries = [i + 2 for i, val in enumerate(first_row) if val != ""]
+    return boundaries
 
 month_boundaries = detect_month_boundaries(df)
 
@@ -93,31 +93,35 @@ def style_calendar(df):
         bold_labels = ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]
         return ['font-weight: bold' if row[1] in bold_labels else '' for _ in row]
 
-    styles = df.style.apply(bold_rows, axis=1)
-    styles = styles.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
+    styled = df.style.apply(bold_rows, axis=1)
+    styled = styled.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
 
     # Inject custom CSS
     css = """
     <style>
     thead tr th:first-child { display: none; }
+
     .dataframe td, .dataframe th {
-        border: 1px solid #ddd;
-        padding: 6px 10px;
         font-size: 12px;
+        font-family: 'Poppins', sans-serif;
+        border: 1px solid #ddd;
+        padding: 4px 6px;
         white-space: nowrap;
-        width: 85px;
+        min-width: 85px;
         max-width: 85px;
+        width: 85px;
     }
     """
+
     for col_idx in month_boundaries:
         css += f""".dataframe th:nth-child({col_idx+1}),
                    .dataframe td:nth-child({col_idx+1}) {{
                        border-left: 2px solid black !important;
                    }}"""
+
     css += "</style>"
-
     st.markdown(css, unsafe_allow_html=True)
-    return styles
+    return styled
 
-# --- DISPLAY ---
+# --- DISPLAY FINAL CALENDAR ---
 st.dataframe(style_calendar(df), use_container_width=True)
