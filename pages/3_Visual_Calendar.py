@@ -25,88 +25,90 @@ hit = selection["hit"]
 launch_type = selection["launch_type"]
 cp = selection["cp"]
 
-# --- FETCH UPLOADED FILE ---
+# --- FETCH CALENDAR DATA ---
 season_data = st.session_state.get("uploaded_calendars", {}).get(season)
 if not season_data:
     st.error("No calendar data found for selected season.")
     st.stop()
 
 # --- FIND MATCHING SHEET ---
-pattern = re.compile(rf"{launch_type[:3].upper()}.*{cp.upper()}", re.IGNORECASE)
-matched_sheet = next((s for s in season_data if pattern.search(s)), None)
-
-if not matched_sheet:
+launch_key = "REGULAR" if launch_type == "Regular" else "QR"
+pattern = re.compile(rf"{launch_key}.*_{cp}", re.IGNORECASE)
+sheet_name = next((s for s in season_data if pattern.search(s)), None)
+if not sheet_name:
     st.error("No matching timeline found for the selected filters.")
     st.stop()
 
-df = season_data[matched_sheet].fillna("").astype(str)
-
-# --- CLEAN INDEX & HEADERS ---
+df = season_data[sheet_name].fillna("").astype(str)
 df.reset_index(drop=True, inplace=True)
-df.columns = ["" if str(col).startswith("_") else str(col) for col in df.columns]
+
+# --- CLEAN HEADERS (REMOVE "Unnamed" etc.) ---
+df.columns = ["" if isinstance(col, str) and col.startswith("_") else col for col in df.columns]
 
 # --- SIMULATE MERGED CELLS ---
-# Merge top repeated headers
-for row in [0, 1]:
-    prev = ""
-    for col in range(2, len(df.columns)):
-        val = df.iloc[row, col]
-        if val == prev:
-            df.iloc[row, col] = ""
-        else:
-            prev = val
+def merge_repeats(df, axis=0, rows_or_cols=[0, 1] if axis == 0 else [0, 1]):
+    df_copy = df.copy()
+    if axis == 0:
+        for row in rows_or_cols:
+            prev = None
+            for col in range(2, df.shape[1]):
+                curr = df.iloc[row, col]
+                if curr == prev:
+                    df_copy.iloc[row, col] = ""
+                else:
+                    prev = curr
+    else:
+        for col in rows_or_cols:
+            prev = None
+            for row in range(df.shape[0]):
+                curr = df.iloc[row, col]
+                if curr == prev:
+                    df_copy.iloc[row, col] = ""
+                else:
+                    prev = curr
+    return df_copy
 
-# Merge left repeated labels
-for col in range(2):
-    prev = ""
-    for row in df.index:
-        val = df.iloc[row, col]
-        if val == prev:
-            df.iloc[row, col] = ""
-        else:
-            prev = val
+df = merge_repeats(df, axis=0)
+df = merge_repeats(df, axis=1)
 
-# --- CUSTOM STYLING ---
-def style_df(df):
-    styled = df.style
+# --- DETECT MONTH BOUNDARIES FOR DARK BORDERS ---
+def detect_month_boundaries(df):
+    first_row = df.iloc[0, 2:]
+    boundaries = [i+2 for i, val in enumerate(first_row) if val != ""]
+    return boundaries
 
-    # Apply bold to key rows
-    key_labels = ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]
-    for label in key_labels:
-        row_mask = df.iloc[:, 1] == label
-        styled = styled.set_properties(subset=pd.IndexSlice[row_mask, :], **{"font-weight": "bold"})
+month_boundaries = detect_month_boundaries(df)
 
-    # Bold left two columns (headers)
-    styled = styled.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
+# --- STYLING FUNCTION ---
+def style_calendar(df):
+    def bold_rows(row):
+        bold_labels = ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]
+        return ['font-weight: bold' if row[1] in bold_labels else '' for _ in row]
 
-    return styled
+    styles = df.style.apply(bold_rows, axis=1)
+    styles = styles.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
 
-# --- DARK BORDERS BETWEEN MONTHS ---
-def add_month_borders(df):
-    header = df.iloc[0]
-    month_boundaries = [i for i in range(2, len(header)) if header[i] != ""]
-    return month_boundaries
-
-month_lines = add_month_borders(df)
-
-def set_borders(styled_df):
+    # Inject custom CSS for month borders
     css = """
     <style>
     thead tr th:first-child { display: none; }
     .dataframe td, .dataframe th {
-        border: 1px solid #ccc;
-        padding: 8px 12px;
+        border: 1px solid #ddd;
+        padding: 6px 10px;
     }
-    .dataframe thead tr:nth-child(3) th {
-        border-bottom: 3px solid #444 !important;
+    .dataframe td, .dataframe th {
+        white-space: nowrap;
     }
     """
-    for i in month_lines:
-        css += f".dataframe td:nth-child({i+1}), .dataframe th:nth-child({i+1}) {{ border-left: 2px solid #000 !important; }}"
+    for col_idx in month_boundaries:
+        css += f""".dataframe th:nth-child({col_idx+1}),
+                   .dataframe td:nth-child({col_idx+1}) {{
+                       border-left: 2px solid black !important;
+                   }}"""
     css += "</style>"
-    st.markdown(css, unsafe_allow_html=True)
 
-# --- FINAL RENDER ---
-styled_df = style_df(df)
-set_borders(styled_df)
-st.dataframe(styled_df, use_container_width=True)
+    st.markdown(css, unsafe_allow_html=True)
+    return styles
+
+# --- DISPLAY CALENDAR ---
+st.dataframe(style_calendar(df), use_container_width=True)
