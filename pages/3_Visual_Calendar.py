@@ -43,7 +43,7 @@ df = season_data[matched_sheet].fillna("").astype(str)
 
 # --- CLEAN INDEX & HEADERS ---
 df.reset_index(drop=True, inplace=True)
-df.columns = ["" if col.startswith("_") else col for col in df.columns]
+df.columns = ["" if str(col).startswith("_") else str(col) for col in df.columns]
 
 # --- SIMULATE MERGED CELLS ---
 # Merge top repeated headers
@@ -67,20 +67,16 @@ for col in range(2):
             prev = val
 
 # --- CUSTOM STYLING ---
-def highlight_bold_rows(val, row_label):
-    if row_label in ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]:
-        return "font-weight: bold"
-    return ""
-
 def style_df(df):
     styled = df.style
 
     # Apply bold to key rows
-    for label in ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]:
+    key_labels = ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]
+    for label in key_labels:
         row_mask = df.iloc[:, 1] == label
         styled = styled.set_properties(subset=pd.IndexSlice[row_mask, :], **{"font-weight": "bold"})
 
-    # Set left col bold (row headers)
+    # Bold left two columns (headers)
     styled = styled.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
 
     return styled
