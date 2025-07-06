@@ -1,62 +1,43 @@
 import streamlit as st
-import re
 import pandas as pd
 
-st.title("Select Season and View Options")
-st.markdown("""
-    <style>
-        .stButton button {
-            background-color: #f2dcdc;
-            color: black;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            border: 1px solid #e6b8b8;
-        }
-    </style>
-""", unsafe_allow_html=True)
+st.title("📅 Calendar View")
 
-uploaded = st.session_state.get("uploaded_calendars", {})
-if not uploaded:
-    st.warning("No calendars found. Please upload them on the Upload page.")
-    st.stop()
+uploaded_calendars = st.session_state.get("uploaded_calendars", {})
+calendar_keys = list(uploaded_calendars.keys())
 
-season = st.selectbox("Select Season", options=list(uploaded.keys()))
-
-# Ensure uploaded[season] is a dict of sheet_name: DataFrame
-if isinstance(uploaded[season], dict):
-    sheet_names = list(uploaded[season].keys())
+if not calendar_keys:
+    st.warning("⚠️ No calendars uploaded. Please go to the 'Upload Calendar' page.")
 else:
-    sheet_names = []
+    selected_calendar = st.selectbox("Select calendar to view", calendar_keys)
+    excel_file = uploaded_calendars.get(selected_calendar)
 
-# Detect hits and CP types from sheet names
-hit_pattern = re.compile(rf"{season}[- ]*HIT (\d+)", re.IGNORECASE)
-hit_matches = sorted(set(int(m.group(1)) for name in sheet_names if (m := hit_pattern.search(name))))
-hit_options = ["All"] + [f"Hit {i}" for i in hit_matches]
+    if excel_file:
+        try:
+            # Read Excel from 3rd row, preserve all values as string
+            df = pd.read_excel(excel_file, header=2, dtype=str)
 
-# Detect CP timelines for each launch type
-def extract_cp_sheets(launch_type):
-    if launch_type == "Regular":
-        cp_pattern = re.compile(rf"{season}.*REGULAR CP_(\d+D)", re.IGNORECASE)
-    else:
-        cp_pattern = re.compile(rf"{season}.*QR_(\d+D)", re.IGNORECASE)
-    return sorted(set(m.group(1) for name in sheet_names if (m := cp_pattern.search(name))))
+            # Clean column headers: blank out unnamed/NaN columns
+            cleaned_cols = []
+            blank_count = 0
+            for col in df.columns:
+                if pd.isna(col) or str(col).startswith("Unnamed"):
+                    cleaned_cols.append(" " * blank_count)  # "", " ", "  ", ...
+                    blank_count += 1
+                else:
+                    cleaned_cols.append(str(col))
 
-hit = st.selectbox("Select Hit", options=hit_options)
-launch_type = st.radio("Launch Type", ["Regular", "Quick Response"])
-available_cps = extract_cp_sheets(launch_type)
+            df.columns = cleaned_cols
 
-if not available_cps:
-    st.error("No CP timelines available for this launch type.")
-    st.stop()
+            # Format dates: convert to '10-Jul-2026' if valid date
+            for col in df.columns:
+                try:
+                    df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime('%d-%b-%Y').fillna(df[col])
+                except:
+                    pass
 
-cp = st.selectbox("Select CP Timeline", available_cps)
+            # Show clean calendar
+            st.dataframe(df.reset_index(drop=True), use_container_width=True)
 
-if st.button("OK"):
-    st.session_state['calendar_selection'] = {
-        "season": season,
-        "hit": hit,
-        "launch_type": launch_type,
-        "cp": cp
-    }
-    st.success("Selection stored. Go to 'Visual Calendar' to see the result.")
+        except Exception as e:
+            st.error(f"❌ Failed to load calendar: {e}")
