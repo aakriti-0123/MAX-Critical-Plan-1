@@ -38,16 +38,19 @@ else:
         st.error(f"Failed to read Excel file: {e}")
         st.stop()
 
-# 4. Extract Hit values from row 2 of each sheet (index 1)
+# 4. Extract Hit values from each sheet (scan top few rows for "WN26 - HIT X")
+hit_pattern = re.compile(rf"{season}\s*[-]?\s*HIT\s*(\d+)", re.IGNORECASE)
 hit_set = set()
+
 for df in season_data.values():
+    # Search top 5 rows, all columns (some hits may be in header row, others in first few rows)
     try:
-        row2 = df.iloc[1, 2:]  # Row 2, excluding first two columns
-        hit_matches = row2[row2.astype(str).str.contains(rf"{season}\s*-\s*HIT\s+\d+", case=False, na=False)]
-        for val in hit_matches.dropna().unique():
-            match = re.search(r"HIT\s+(\d+)", str(val), re.IGNORECASE)
-            if match:
-                hit_set.add(f"Hit {match.group(1)}")
+        subset = df.iloc[0:5, :].astype(str)
+        for row in subset.values:
+            for cell in row:
+                match = hit_pattern.search(cell)
+                if match:
+                    hit_set.add(f"Hit {int(match.group(1))}")
     except Exception:
         continue
 
