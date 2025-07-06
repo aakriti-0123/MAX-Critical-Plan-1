@@ -102,7 +102,7 @@ thead tr th:first-child { display: none; }
     border: 1px solid #ddd;
     padding: 6px 10px;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 10px;
 }
 """
     for col_idx in month_boundaries:
