@@ -14,9 +14,16 @@ if not uploaded:
 season = st.selectbox("Select Season", list(uploaded.keys()))
 season_file = uploaded[season]
 
-# --- Step 2: Read sheet names ---
-try:
-    season_data = pd.read_excel(season_file, sheet_name=None)
+# If already parsed, don't re-read
+if isinstance(season_file, dict):
+    season_data = season_file
+else:
+    try:
+        season_data = pd.read_excel(season_file, sheet_name=None)
+        st.session_state["uploaded_calendars"][season] = season_data  # cache it
+    except Exception as e:
+        st.error(f"Error reading Excel: {e}")
+        st.stop()
 except Exception as e:
     st.error(f"Error reading Excel: {e}")
     st.stop()
