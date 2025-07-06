@@ -96,6 +96,20 @@ def style_calendar(df):
 
     # Inject custom CSS for month borders
     css = """
+<style>
+thead tr th:first-child { display: none; }
+.dataframe td, .dataframe th {
+    border: 1px solid #ddd;
+    padding: 4px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    height: auto;
+    max-width: 150px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+"""
+
     for col_idx in month_boundaries:
         css += f""".dataframe th:nth-child({col_idx+1}),
                    .dataframe td:nth-child({col_idx+1}) {{
