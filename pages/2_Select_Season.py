@@ -1,5 +1,6 @@
 import streamlit as st
 import re
+import pandas as pd
 
 st.title("Select Season and View Options")
 st.markdown("""
@@ -22,8 +23,13 @@ if not uploaded:
 
 season = st.selectbox("Select Season", options=list(uploaded.keys()))
 
+# Ensure uploaded[season] is a dict of sheet_name: DataFrame
+if isinstance(uploaded[season], dict):
+    sheet_names = list(uploaded[season].keys())
+else:
+    sheet_names = []
+
 # Detect hits and CP types from sheet names
-sheet_names = list(uploaded[season].keys())
 hit_pattern = re.compile(rf"{season}[- ]*HIT (\d+)", re.IGNORECASE)
 hit_matches = sorted(set(int(m.group(1)) for name in sheet_names if (m := hit_pattern.search(name))))
 hit_options = ["All"] + [f"Hit {i}" for i in hit_matches]
