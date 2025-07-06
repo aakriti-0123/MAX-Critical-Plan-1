@@ -69,27 +69,51 @@ calendar = pd.concat([header_rows, body], ignore_index=True)
 
 # 🧾 Generate styled HTML
 def generate_calendar_html(df):
-    html = "<style>td, th { font-family: Poppins; font-size: 13px; border-collapse: collapse; text-align: center; padding: 6px; } \
-             .month { border-right: 2px solid #555; font-weight: bold; background-color: #fceeee; } \
-             .hit { font-weight: bold; background-color: #f9f0f0; } \
-             .milestone { font-weight: bold; background-color: #fff3f3; text-align: left; padding-left: 10px; } \
-             table { width: 100%; border: 1px solid #aaa; border-collapse: collapse; }</style>"
-    html += "<table border='1'>"
+    html = """
+    <style>
+        td, th {
+            font-family: Poppins;
+            font-size: 13px;
+            border-collapse: collapse;
+            text-align: center;
+            padding: 6px;
+        }
+        .month { font-weight: bold; background-color: #fceeee; border-right: 2px solid #444; }
+        .hit { font-weight: bold; background-color: #f9f0f0; }
+        .milestone { font-weight: bold; background-color: #fff3f3; text-align: left; padding-left: 10px; }
+        .bold { font-weight: bold; }
+        .divider { border-right: 2px solid #333 !important; }
+        table { width: 100%; border: 1px solid #aaa; border-collapse: collapse; }
+    </style>
+    <table border='1'>
+    """
+
+    prev_months = df.iloc[1].tolist()
+    prev_hits = df.iloc[2].tolist()
 
     for i, row in df.iterrows():
         html += "<tr>"
         for j, cell in enumerate(row):
             val = "" if pd.isna(cell) or str(cell).strip().lower() == "none" else str(cell)
 
-            # Classify styling
+            css_class = ""
             if i == 1:
+                if j > 1 and j < len(row) and row[j] == prev_months[j - 1]:
+                    val = ""
                 css_class = "month"
             elif i == 2:
+                if j > 1 and j < len(row) and row[j] == prev_hits[j - 1]:
+                    val = ""
                 css_class = "hit"
             elif i >= 4 and j in [0, 1]:
                 css_class = "milestone"
-            else:
-                css_class = ""
+            elif val in ["GRN DATE", "LAUNCH WK", "LAUNCH DATE", "Launch Sequence", "MONTHS", "HIT"]:
+                css_class = "bold"
+
+            # Darker borders after each Month block
+            if i >= 1 and i <= 3:
+                if i == 1 and j > 1 and row[j] != row[j - 1]:
+                    css_class += " divider"
 
             html += f"<td class='{css_class}'>{val}</td>"
         html += "</tr>"
