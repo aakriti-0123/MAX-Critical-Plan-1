@@ -95,21 +95,23 @@ def style_calendar(df):
     styles = styles.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
 
     # Inject custom CSS for month borders
-    css = """
+css = """
 <style>
 thead tr th:first-child { display: none; }
 .dataframe td, .dataframe th {
     border: 1px solid #ddd;
     padding: 4px 6px;
     font-size: 12px;
-    white-space: nowrap;
-    height: auto;
-    max-width: 150px;
-    overflow-wrap: break-word;
+    max-width: 64px;              /* Equivalent to Excel column width ~8.64 */
+    min-width: 64px;
+    white-space: normal;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
+    vertical-align: middle;
 }
+</style>
 """
-
     for col_idx in month_boundaries:
         css += f""".dataframe th:nth-child({col_idx+1}),
                    .dataframe td:nth-child({col_idx+1}) {{
