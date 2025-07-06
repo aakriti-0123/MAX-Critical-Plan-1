@@ -53,9 +53,6 @@ for col in df.columns[2:]:  # Skip row headers
 # --- CLEAN HEADERS ---
 df.columns = ["" if isinstance(col, str) and col.startswith("_") else col for col in df.columns]
 
-# --- REMOVE INDEX FROM DISPLAY ---
-df.index = [''] * len(df)
-
 # --- MERGE CELLS BY EMPTYING REPEATS ---
 def merge_repeats(df, axis=0, rows_or_cols=None):
     df_copy = df.copy()
@@ -63,27 +60,29 @@ def merge_repeats(df, axis=0, rows_or_cols=None):
         rows_or_cols = [0, 1] if axis == 0 else [0, 1]
 
     if axis == 0:
+        # Horizontal: merge in specific rows across columns 2+
         for row in rows_or_cols:
             prev = None
             for col in range(2, df.shape[1]):
-                curr = df.iloc[row, col]
+                curr = df.iat[row, col]
                 if curr == prev:
-                    df_copy.iloc[row, col] = ""
+                    df_copy.iat[row, col] = ""
                 else:
                     prev = curr
     else:
+        # Vertical: merge in specific columns down all rows
         for col in rows_or_cols:
             prev = None
-            for row in df.index:
-                curr = df.iloc[row, col]
+            for row in range(df.shape[0]):
+                curr = df.iat[row, col]
                 if curr == prev:
-                    df_copy.iloc[row, col] = ""
+                    df_copy.iat[row, col] = ""
                 else:
                     prev = curr
     return df_copy
 
-# Merge horizontally (months etc.)
-df = merge_repeats(df, axis=0, rows_or_cols=[0, 1, 2])  # Add more rows if you want more merges
+# Merge horizontally (months etc.); add more rows if you want more merges
+df = merge_repeats(df, axis=0, rows_or_cols=[0, 1, 2])
 # Merge vertically (row labels)
 df = merge_repeats(df, axis=1, rows_or_cols=[0, 1])
 
@@ -119,8 +118,6 @@ def style_calendar(df):
         "white-space": "nowrap",
         "border": "1px solid #aaa"
     })
-    # Remove top left index
-    styled = styled.hide(axis="index")
 
     # Inject custom CSS for borders and header hiding
     css = """
