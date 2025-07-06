@@ -41,9 +41,13 @@ if not sheet_name:
 
 df = season_data[sheet_name].fillna("").astype(str)
 
-# --- FORMAT DATE COLUMNS TO REMOVE TIME STAMPS ---
+# --- FORMAT DATE COLUMNS TO SHOW DD-MMM ONLY ---
 for col in df.columns[2:]:  # Skip row headers
-    df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%d-%b-%Y').fillna(df[col])
+    try:
+        parsed = pd.to_datetime(df[col], errors='coerce')
+        df[col] = parsed.dt.strftime('%d-%b').where(parsed.notna(), df[col])
+    except Exception:
+        continue
 
 df.reset_index(drop=True, inplace=True)
 
