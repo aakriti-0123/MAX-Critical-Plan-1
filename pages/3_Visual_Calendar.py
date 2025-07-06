@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Replace with your actual Excel embed URL
-excel_embed_url = "https://landmarkgroup-my.sharepoint.com/:x:/p/aakriti_verma/EYKrNI1FBKlIou23O79LzvsBns1ocRAGS34jGYyqzCZIrw?e=CSd1jn"
+excel_embed_url = "https://docs.google.com/spreadsheets/d/1e9pHXpKBoy5tSl-9MjHTYu0X4dGvoaaT/edit?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true"
 
 iframe_code = f'''
 <iframe src="{excel_embed_url}" width="1000" height="600" frameborder="0"></iframe>
