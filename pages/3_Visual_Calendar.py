@@ -40,6 +40,7 @@ if not sheet_name:
     st.stop()
 
 df = season_data[sheet_name].fillna("").astype(str)
+df.reset_index(drop=True, inplace=True)
 
 # --- FORMAT DATE COLUMNS TO SHOW DD-MMM ONLY ---
 for col in df.columns[2:]:  # Skip row headers
@@ -49,12 +50,13 @@ for col in df.columns[2:]:  # Skip row headers
     except Exception:
         continue
 
-df.reset_index(drop=True, inplace=True)
-
 # --- CLEAN HEADERS ---
 df.columns = ["" if isinstance(col, str) and col.startswith("_") else col for col in df.columns]
 
-# --- SIMULATE MERGED CELLS ---
+# --- REMOVE INDEX FROM DISPLAY ---
+df.index = [''] * len(df)
+
+# --- MERGE CELLS BY EMPTYING REPEATS ---
 def merge_repeats(df, axis=0, rows_or_cols=None):
     df_copy = df.copy()
     if rows_or_cols is None:
@@ -80,8 +82,10 @@ def merge_repeats(df, axis=0, rows_or_cols=None):
                     prev = curr
     return df_copy
 
-df = merge_repeats(df, axis=0)
-df = merge_repeats(df, axis=1)
+# Merge horizontally (months etc.)
+df = merge_repeats(df, axis=0, rows_or_cols=[0, 1, 2])  # Add more rows if you want more merges
+# Merge vertically (row labels)
+df = merge_repeats(df, axis=1, rows_or_cols=[0, 1])
 
 # --- DETECT MONTH BOUNDARIES ---
 def detect_month_boundaries(df):
@@ -93,34 +97,55 @@ month_boundaries = detect_month_boundaries(df)
 
 # --- STYLING FUNCTION ---
 def style_calendar(df):
+    # Rows that should be bold (by their 2nd column value)
+    bold_labels = [
+        "GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK",
+        "Launch & GRN Dates", "MONTHS", "HIT", "GRN WK Considering 7D"
+    ]
+
     def bold_rows(row):
-        bold_labels = ["GRN DATE", "Launch Sequence", "Monthly Drop Split", "LAUNCH WK", "LAUNCH DATE"]
-        return ['font-weight: bold' if row[1] in bold_labels else '' for _ in row]
+        if row[1] in bold_labels or row[0] in bold_labels:
+            return ['font-weight: bold' for _ in row]
+        # Bold for first two columns always
+        return ['font-weight: bold' if i < 2 else '' for i in range(len(row))]
 
     styled = df.style.apply(bold_rows, axis=1)
-    styled = styled.set_properties(subset=pd.IndexSlice[:, :2], **{"font-weight": "bold"})
+    styled = styled.set_properties(**{
+        "font-family": "Poppins, sans-serif",
+        "font-size": "10px",
+        "min-width": "75px",
+        "max-width": "75px",
+        "width": "75px",
+        "white-space": "nowrap",
+        "border": "1px solid #aaa"
+    })
+    # Remove top left index
+    styled = styled.hide(axis="index")
 
-    # Inject custom CSS
+    # Inject custom CSS for borders and header hiding
     css = """
     <style>
     thead tr th:first-child { display: none; }
-
-    .dataframe td, .dataframe th {
-        font-size: 12px;
-        font-family: 'Poppins', sans-serif;
-        border: 1px solid #ddd;
-        padding: 4px 6px;
+    .dataframe th, .dataframe td {
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 10px !important;
+        min-width: 75px !important;
+        max-width: 75px !important;
+        width: 75px !important;
+        border: 1px solid #aaa !important;
         white-space: nowrap;
-        min-width: 85px;
-        max-width: 85px;
-        width: 85px;
+        text-align: center;
     }
+    /* Dark left border */
+    .dataframe th, .dataframe td {
+        border-left: 2px solid #222 !important;
+    }
+    /* Dark borders at month boundaries */
     """
-
     for col_idx in month_boundaries:
         css += f""".dataframe th:nth-child({col_idx+1}),
                    .dataframe td:nth-child({col_idx+1}) {{
-                       border-left: 2px solid black !important;
+                       border-left: 3px solid #222 !important;
                    }}"""
 
     css += "</style>"
@@ -128,4 +153,4 @@ def style_calendar(df):
     return styled
 
 # --- DISPLAY FINAL CALENDAR ---
-st.dataframe(style_calendar(df), use_container_width=True)
+st.dataframe(style_calendar(df), use_container_width=True, hide_index=True)
