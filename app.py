@@ -7,7 +7,7 @@ st.set_page_config(page_title="MAX Critical Calendar", layout="wide")
 with open("styles/theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.sidebar.image("Assets/MAX_Logo.png", width=180)
+st.sidebar.image("Assets/MAX_Logo1.png", width=180)
 st.sidebar.markdown("## MAX Critical Plan App")
 st.sidebar.markdown("Navigate across seasons in Calendar view.")
 
