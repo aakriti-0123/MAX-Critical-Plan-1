@@ -3,7 +3,7 @@ import os
 
 st.set_page_config(page_title="MAX Critical Calendar", layout="wide")
 
-# Custom CSS for no scroll, compact layout
+# Custom CSS for no scroll, compact layout, and bigger logo alignment
 custom_css = """
 <style>
 body, .main, .block-container, .stApp {
@@ -56,6 +56,30 @@ body, .main, .block-container, .stApp {
     font-size: 1rem;
     margin: 0;
 }
+/* Sidebar logo and text alignment */
+#max-sidebar-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+#max-sidebar-header img {
+    width: 220px !important;
+    max-width: 80%;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+#max-sidebar-header .sidebar-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0.3rem 0 0.4rem 0;
+    text-align: center;
+}
+#max-sidebar-header .sidebar-desc {
+    font-size: 1rem;
+    text-align: center;
+}
 </style>
 """
 
@@ -63,10 +87,14 @@ with open("styles/theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# Sidebar logo and info
-st.sidebar.image("Assets/MAX_Logo1.png", width=120)
-st.sidebar.markdown("## MAX Critical Plan App")
-st.sidebar.markdown("Navigate across seasons in Calendar view.")
+# Sidebar logo and info with bigger logo and aligned text
+st.sidebar.markdown("""
+<div id="max-sidebar-header">
+    <img src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/MAX_Logo1.png" alt="MAX Logo"/>
+    <div class="sidebar-title">MAX Critical Plan App</div>
+    <div class="sidebar-desc">Navigate across seasons in Calendar view.</div>
+</div>
+""", unsafe_allow_html=True)
 
 # Main content
 st.markdown("""
