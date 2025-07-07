@@ -3,7 +3,7 @@ import os
 
 st.set_page_config(page_title="MAX Critical Calendar", layout="wide")
 
-# Inject custom CSS for no scroll and fixing page height
+# Custom CSS for no scroll, compact layout
 custom_css = """
 <style>
 body, .main, .block-container, .stApp {
@@ -11,51 +11,72 @@ body, .main, .block-container, .stApp {
     height: 100vh !important;
     min-height: 100vh !important;
     max-height: 100vh !important;
+    background: #fcf7f5 !important;
 }
 .stApp {
     padding: 0 !important;
 }
 .block-container {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
 }
 .stSidebar {
     min-height: 100vh !important;
     max-height: 100vh !important;
 }
+#max-main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+}
+.max-hero-img {
+    width: 320px;
+    max-width: 85vw;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    margin-top: 1.5vh;
+    margin-bottom: 1vh;
+}
+.max-hero-text {
+    background-color: rgba(255, 255, 255, 0.96);
+    padding: 1.2rem 1.5rem;
+    border-radius: 18px;
+    max-width: 430px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin: 0 auto;
+    text-align: center;
+}
+.max-hero-text h1 {
+    font-size: 1.7rem;
+    margin: 0 0 0.6rem 0;
+}
+.max-hero-text p {
+    font-size: 1rem;
+    margin: 0;
+}
 </style>
 """
 
-# Inject custom CSS from file (theme) and additional no-scroll CSS
 with open("styles/theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# Sidebar logo
-st.sidebar.image("Assets/MAX_Logo1.png", width=140)
+# Sidebar logo and info
+st.sidebar.image("Assets/MAX_Logo1.png", width=120)
 st.sidebar.markdown("## MAX Critical Plan App")
 st.sidebar.markdown("Navigate across seasons in Calendar view.")
 
-# Main content with smaller, sharper hero image and text block
+# Main content
 st.markdown("""
-    <div style='position: relative; text-align: center; margin-top: -10px; margin-bottom: 0;'>
-        <img src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/Picture2.png" 
-             alt="Fashion Hero" 
-             style="width: 420px; max-width: 90vw; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);" />
-        <div style='
-            position: relative;
-            background-color: rgba(255, 255, 255, 0.92);
-            margin: 1.5rem auto 0 auto;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            max-width: 520px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: inline-block;
-        '>
-            <h1 style='margin: 0; font-size: 2.2rem;'>Welcome to the MAX Critical Plan Calendar</h1>
-            <p style='font-size: 1.1rem; margin-top: 0.5rem;'>
-                This dashboard helps visualize apparel launch timelines across seasons, hits, and launch types.
-            </p>
-        </div>
+<div id="max-main-content">
+    <img class="max-hero-img" src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/Picture2.png" alt="Fashion Hero"/>
+    <div class="max-hero-text">
+        <h1>Welcome to the MAX Critical Plan Calendar</h1>
+        <p>
+            This dashboard helps visualize apparel launch timelines across seasons, hits, and launch types.
+        </p>
     </div>
+</div>
 """, unsafe_allow_html=True)
