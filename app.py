@@ -3,44 +3,38 @@ import os
 
 st.set_page_config(page_title="MAX Critical Calendar", layout="wide")
 
-# Inject custom CSS
+# Inject theme
 with open("styles/theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Sidebar
+# Sidebar logo
 st.sidebar.image("Assets/MAX_Logo1.png", width=140)
 st.sidebar.markdown("## MAX Critical Plan App")
 st.sidebar.markdown("Navigate across seasons in Calendar view.")
 
-# Main hero image with overlay text
+# Main content block: smaller image + text side by side
 st.markdown("""
     <div style='
-        position: relative;
-        text-align: center;
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        height: 540px;
-        overflow: hidden;
-        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3rem;
+        margin-top: 2rem;
+        padding: 0 2rem;
+        flex-wrap: wrap;
     '>
         <img src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/Picture2.png"
-             alt="Fashion"
-             style="width: 100%; height: 100%; object-fit: cover;"/>
+             alt="MAX Campaign"
+             style="max-width: 480px; height: auto; border-radius: 14px;"/>
 
         <div style='
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255,255,255,0.88);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            text-align: left;
         '>
-            <h2 style='margin: 0; font-size: 1.8rem;'>Welcome to the MAX Critical Plan Calendar</h2>
-            <p style='margin-top: 0.5rem; font-size: 1rem;'>
-                Visualize apparel launch timelines across seasons, hits, and launch types.
+            <h1 style='margin: 0; font-size: 2.2rem;'>Welcome to the MAX Critical Plan Calendar</h1>
+            <p style='margin-top: 0.75rem; font-size: 1.1rem; line-height: 1.6;'>
+                Visualize apparel launch timelines across seasons, hits, and launch types in one stylish view.
+                Navigate easily and stay ahead of critical milestones.
             </p>
         </div>
     </div>
