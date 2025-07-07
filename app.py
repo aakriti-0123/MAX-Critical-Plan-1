@@ -90,7 +90,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Sidebar logo and info with bigger logo and aligned text
 st.sidebar.markdown("""
 <div id="max-sidebar-header">
-    <img src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/MAX_Logo1.png" alt="MAX Logo"/>
+    <img src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/MAX_Logo2.png" alt="MAX Logo"/>
     <div class="sidebar-title">MAX Critical Plan App</div>
     <div class="sidebar-desc">Navigate across seasons in Calendar view.</div>
 </div>
