@@ -3,11 +3,11 @@ import streamlit.components.v1 as components
 
 st.set_page_config(layout="wide")
 
-# Mapping of toggle names to sheet URLs (use /edit if possible to preserve frozen rows/columns)
+# Mapping of toggle names to Google Sheets published embed URLs (toolbar and edit both disabled)
 sheet_urls = {
-    "WN26": "https://docs.google.com/spreadsheets/d/1DioMTxZakUrLg5ZjElWo9DcxVPxcqhUN/edit?usp=sharing",
-    "SS26": "https://docs.google.com/spreadsheets/d/16XNqVsbEYVxUBvRyF9l6EgkT_p5lDvQy/edit?usp=sharing",
-    "WN25": "https://docs.google.com/spreadsheets/d/1mXSf7Kx89WZb4Off7x3tPa3Buc6QF1Dj/edit?usp=sharing"
+    "WN26": "https://docs.google.com/spreadsheets/d/1DioMTxZakUrLg5ZjElWo9DcxVPxcqhUN/pubhtml?widget=true&headers=false",
+    "SS26": "https://docs.google.com/spreadsheets/d/16XNqVsbEYVxUBvRyF9l6EgkT_p5lDvQy/pubhtml?widget=true&headers=false",
+    "WN25": "https://docs.google.com/spreadsheets/d/1mXSf7Kx89WZb4Off7x3tPa3Buc6QF1Dj/pubhtml?widget=true&headers=false"
 }
 
 selected_sheet = st.radio(
@@ -23,7 +23,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Embed the selected Google Sheet in 'edit' mode for frozen row/column support
+# Embed the selected Google Sheet in published (read-only, no toolbar) mode
 components.html(
     f"""
     <iframe 
@@ -40,7 +40,6 @@ components.html(
         loading="lazy"
     ></iframe>
     <style>
-        /* Make the main body non-scrollable */
         body, html, .main, .block-container {{
             overflow: hidden !important;
         }}
@@ -51,7 +50,6 @@ components.html(
     scrolling=False,  # disables iframe scrollbars
 )
 
-# Force Streamlit's own scrollbars off as well
 st.markdown("""
     <style>
         .main, .block-container, .stApp {{
