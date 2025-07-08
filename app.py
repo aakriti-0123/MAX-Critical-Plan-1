@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-st.set_page_config(page_title="MAX Critical Calendar", layout="wide")
+st.set_page_config(page_title="MAX Critical Path Calendar", layout="wide")
 
 # Custom CSS for no scroll, compact layout, and bigger logo alignment
 custom_css = """
@@ -91,7 +91,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 st.sidebar.markdown("""
 <div id="max-sidebar-header">
     <img src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/MAX_Logo2.png" alt="MAX Logo"/>
-    <div class="sidebar-title">MAX Critical Plan App</div>
+    <div class="sidebar-title">MAX Critical Path App</div>
     <div class="sidebar-desc">Navigate across seasons in Calendar view.</div>
 </div>
 """, unsafe_allow_html=True)
@@ -101,7 +101,7 @@ st.markdown("""
 <div id="max-main-content">
     <img class="max-hero-img" src="https://raw.githubusercontent.com/aakriti-0123/MAX-Critical-Plan-1/main/Assets/Picture2.png" alt="Fashion Hero"/>
     <div class="max-hero-text">
-        <h1>Welcome to the MAX Critical Plan Calendar</h1>
+        <h1>Welcome to the MAX Critical Path Calendar</h1>
         <p>
             This dashboard helps visualize apparel launch timelines across seasons, hits, and launch types.
         </p>
