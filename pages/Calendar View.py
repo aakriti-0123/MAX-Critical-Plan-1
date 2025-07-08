@@ -5,9 +5,9 @@ st.set_page_config(layout="wide")
 
 # Mapping of toggle names to Google Sheets published embed URLs (toolbar and edit both disabled)
 sheet_urls = {
-    "WN26": "https://docs.google.com/spreadsheets/d/1DioMTxZakUrLg5ZjElWo9DcxVPxcqhUN/pubhtml?widget=true&headers=false",
-    "SS26": "https://docs.google.com/spreadsheets/d/16XNqVsbEYVxUBvRyF9l6EgkT_p5lDvQy/pubhtml?widget=true&headers=false",
-    "WN25": "https://docs.google.com/spreadsheets/d/1mXSf7Kx89WZb4Off7x3tPa3Buc6QF1Dj/pubhtml?widget=true&headers=false"
+    "WN26": "https://docs.google.com/spreadsheets/d/1DioMTxZakUrLg5ZjElWo9DcxVPxcqhUN/edit?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true",
+    "SS26": "https://docs.google.com/spreadsheets/d/16XNqVsbEYVxUBvRyF9l6EgkT_p5lDvQy/edit?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true",
+    "WN25": "https://docs.google.com/spreadsheets/d/1mXSf7Kx89WZb4Off7x3tPa3Buc6QF1Dj/edit?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true"
 }
 
 selected_sheet = st.radio(
