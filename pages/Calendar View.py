@@ -19,7 +19,7 @@ selected_sheet = st.radio(
 
 st.markdown(
     "<div style='text-align:center; margin: 1rem 0;'>"
-    "Please navigate to the tab named <b>REGULAR CP_30D</b> in the embedded sheet below."
+    "Please use the sheet below to navigate to the desired regular/quick launch calendar view."
     "</div>",
     unsafe_allow_html=True
 )
