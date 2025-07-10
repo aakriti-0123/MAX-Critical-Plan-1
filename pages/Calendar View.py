@@ -5,7 +5,7 @@ st.set_page_config(layout="wide")
 
 # Mapping of toggle names to Google Sheets published embed URLs (toolbar and edit both disabled)
 sheet_urls = {
-    "WN26": "https://docs.google.com/spreadsheets/d/1iU-3kJWgAEXPTRBG3S2H-j2o8PvbhQeN/view?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true",
+    "WN26": "https://docs.google.com/spreadsheets/d/1iU-3kJWgAEXPTRBG3S2H-j2o8PvbhQeN/preview?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true",
     "SS26": "https://docs.google.com/spreadsheets/d/1I62AmeGOrLlNJnMCrIKdxwLXgb0qkqx5/preview?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true",
     "WN25": "https://docs.google.com/spreadsheets/d/1jPH2Wc693u2P53fpMrixhaluDEAvLurg/preview?usp=sharing&ouid=109548826197667239183&rtpof=true&sd=true"
 }
