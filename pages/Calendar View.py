@@ -30,7 +30,7 @@ components.html(
         src="{sheet_urls[selected_sheet]}"
         style="
             width: 100vw; 
-            height: 90vh; 
+            height: 75vh; 
             border: none; 
             margin: 0; 
             padding: 0; 
@@ -45,7 +45,7 @@ components.html(
         }}
     </style>
     """,
-    height=900,
+    height=700,
     width=1920,
     scrolling=False,  # disables iframe scrollbars
 )
